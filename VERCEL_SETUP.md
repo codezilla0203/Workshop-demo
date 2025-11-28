@@ -25,7 +25,10 @@ In Vercel project settings → **Environment Variables**, add:
 - **JWT_SECRET**: Generate with `openssl rand -base64 32` (minimum 32 characters)
 
 #### For PostgreSQL (if using):
-- **DATABASE_URL**: Your PostgreSQL connection string
+- **DATABASE_URL**: Your **Vercel Postgres** connection string
+  - ⚠️ **Important**: Get this from Vercel Storage tab, NOT from Prisma
+  - Go to: Storage → Your Postgres DB → Connection String
+  - It should look like: `postgres://user:pass@host.neon.tech:5432/dbname?sslmode=require`
 
 ### 4. Database Setup Options
 

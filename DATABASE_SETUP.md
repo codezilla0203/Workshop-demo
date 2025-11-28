@@ -76,6 +76,16 @@ If you want to use Prisma Accelerate for connection pooling:
 
 ✅ **Use `DATABASE_URL`** - This is the standard connection string that Prisma expects.
 
+⚠️ **IMPORTANT**: If you created PostgreSQL in Vercel, you MUST use the Vercel Postgres connection string, NOT the Prisma-hosted one!
+
+### How to Find Your Vercel Postgres Connection String:
+
+1. Go to Vercel project → **Storage** tab
+2. Click on your **Postgres** database
+3. Look for **Connection String** or **.env.local** tab
+4. Copy that connection string (it will be different from the Prisma one)
+5. Use that in your `DATABASE_URL` environment variable
+
 The schema has been updated to use PostgreSQL with `DATABASE_URL`.
 
 ## Next Steps
