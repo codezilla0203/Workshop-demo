@@ -39,17 +39,98 @@
 
 ### Database Setup
 
-**For Production:**
-- SQLite is fine for demos, but for production consider PostgreSQL
-- Update `prisma/schema.prisma` datasource to:
-  ```prisma
-  datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+**Option 1: SQLite (Quick Demo - Not Recommended for Production)**
+- SQLite works for demos but has limitations in serverless environments
+- Vercel's file system is read-only, so SQLite won't work on Vercel
+- **Use this only for local development**
+
+**Option 2: PostgreSQL (Recommended for Vercel)**
+
+#### Step 1: Create a PostgreSQL Database
+
+**Option A: Vercel Postgres (Easiest)**
+1. In your Vercel project dashboard
+2. Go to **Storage** tab
+3. Click **Create Database**
+4. Select **Postgres**
+5. Choose a plan (Hobby plan is free for small projects)
+6. Vercel will automatically create and configure the database
+7. The `DATABASE_URL` will be automatically added to your environment variables
+
+**Option B: External PostgreSQL (Supabase, Neon, etc.)**
+1. Create account at [Supabase](https://supabase.com) or [Neon](https://neon.tech) (both have free tiers)
+2. Create a new PostgreSQL database
+3. Copy the connection string (looks like: `postgresql://user:pass@host:5432/dbname`)
+4. In Vercel: **Settings** → **Environment Variables**
+5. Add: `DATABASE_URL` = your PostgreSQL connection string
+
+#### Step 2: Update Prisma Schema
+
+Update `prisma/schema.prisma`:
+```prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+```
+
+#### Step 3: Create Migration
+
+```bash
+# Create initial migration
+npx prisma migrate dev --name init
+
+# This creates a migrations folder
+```
+
+#### Step 4: Configure Vercel Build
+
+Vercel will automatically run Prisma migrations during build, but you can also add a build script:
+
+In `package.json`, the build script should be:
+```json
+{
+  "scripts": {
+    "build": "prisma generate && prisma migrate deploy && next build"
   }
-  ```
-- Add `DATABASE_URL` environment variable in Vercel
-- Run migrations: `npx prisma migrate deploy`
+}
+```
+
+**Note**: The current build script already includes `prisma generate`, so migrations will run automatically.
+
+#### Step 5: Deploy
+
+1. Push your code to GitHub
+2. Vercel will automatically:
+   - Install dependencies
+   - Run `prisma generate`
+   - Run `prisma migrate deploy` (if you add it to build script)
+   - Build and deploy your app
+
+#### Alternative: Manual Migration (If needed)
+
+If migrations don't run automatically, you can run them manually via Vercel CLI:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Login
+vercel login
+
+# Link to your project
+vercel link
+
+# Run migration
+vercel env pull .env.local
+npx prisma migrate deploy
+```
+
+Or use Vercel's built-in terminal:
+1. Go to your project in Vercel dashboard
+2. Click **Deployments** tab
+3. Click on a deployment
+4. Use the terminal to run: `npx prisma migrate deploy`
 
 **For Demo (SQLite):**
 - SQLite works but has limitations
