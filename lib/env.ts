@@ -42,11 +42,15 @@ const envSchema = z.object({
 type Env = z.infer<typeof envSchema>
 
 function getEnv(): Env {
+  // Support both DATABASE_URL and POSTGRES_URL (Vercel provides POSTGRES_URL)
+  // Use POSTGRES_URL as fallback if DATABASE_URL is not set
+  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL
+
   try {
     return envSchema.parse({
       NODE_ENV: nodeEnv,
       JWT_SECRET: getJwtSecret(),
-      DATABASE_URL: process.env.DATABASE_URL,
+      DATABASE_URL: databaseUrl,
     })
   } catch (error) {
     if (error instanceof z.ZodError) {

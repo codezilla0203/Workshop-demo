@@ -8,6 +8,12 @@
 
 import { PrismaClient } from '@prisma/client'
 
+// Support both DATABASE_URL and POSTGRES_URL (Vercel provides POSTGRES_URL)
+// Prisma expects DATABASE_URL, so we map POSTGRES_URL to DATABASE_URL if needed
+if (!process.env.DATABASE_URL && process.env.POSTGRES_URL) {
+  process.env.DATABASE_URL = process.env.POSTGRES_URL
+}
+
 // Prevent multiple instances of Prisma Client in development
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
