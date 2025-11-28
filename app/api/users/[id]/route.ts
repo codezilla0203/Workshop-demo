@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { updateUserSchema } from '@/lib/validation'
 import { successResponse, errorResponse, handleApiError, ApiError } from '@/lib/api-response'
 import { HTTP_STATUS, ERROR_MESSAGES } from '@/lib/constants'
+import { withDatabaseCheck } from '@/lib/db-utils'
 
 // GET /api/users/[id] - Get user by ID
 export async function GET(
@@ -12,17 +13,20 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    })
+    const user = await withDatabaseCheck(
+      () => prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      }),
+      'Unable to fetch user. Please ensure the database is initialized.'
+    )
 
     if (!user) {
       return errorResponse(
@@ -46,17 +50,20 @@ async function patchHandler(
     const body = await req.json()
     const validatedData = updateUserSchema.parse(body)
 
-    const user = await prisma.user.update({
-      where: { id },
-      data: validatedData,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        updatedAt: true
-      }
-    })
+    const user = await withDatabaseCheck(
+      () => prisma.user.update({
+        where: { id },
+        data: validatedData,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          updatedAt: true
+        }
+      }),
+      'Unable to update user. Please ensure the database is initialized.'
+    )
 
     return successResponse({ user })
   } catch (error: unknown) {
@@ -99,9 +106,12 @@ async function deleteHandler(
 ) {
   try {
     const { id } = await params
-    await prisma.user.delete({
-      where: { id }
-    })
+    await withDatabaseCheck(
+      () => prisma.user.delete({
+        where: { id }
+      }),
+      'Unable to delete user. Please ensure the database is initialized.'
+    )
 
     return successResponse({ message: 'User deleted successfully' })
   } catch (error: unknown) {

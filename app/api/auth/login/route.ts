@@ -5,16 +5,20 @@ import { loginSchema } from '@/lib/validation'
 import { successResponse, errorResponse, handleApiError, ApiError } from '@/lib/api-response'
 import { HTTP_STATUS, ERROR_MESSAGES, APP_CONFIG } from '@/lib/constants'
 import { UserRole } from '@/types/user'
+import { withDatabaseCheck } from '@/lib/db-utils'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const validatedData = loginSchema.parse(body)
 
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { email: validatedData.email }
-    })
+    // Find user with database error handling
+    const user = await withDatabaseCheck(
+      () => prisma.user.findUnique({
+        where: { email: validatedData.email }
+      }),
+      'Unable to access database. Please ensure the database is initialized.'
+    )
 
     if (!user) {
       throw new ApiError(HTTP_STATUS.UNAUTHORIZED, ERROR_MESSAGES.INVALID_CREDENTIALS)

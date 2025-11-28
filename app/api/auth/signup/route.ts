@@ -5,16 +5,20 @@ import { signupSchema } from '@/lib/validation'
 import { successResponse, errorResponse, handleApiError, ApiError } from '@/lib/api-response'
 import { HTTP_STATUS, ERROR_MESSAGES, APP_CONFIG } from '@/lib/constants'
 import { UserRole } from '@/types/user'
+import { withDatabaseCheck } from '@/lib/db-utils'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const validatedData = signupSchema.parse(body)
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: validatedData.email }
-    })
+    // Check if user already exists with database error handling
+    const existingUser = await withDatabaseCheck(
+      () => prisma.user.findUnique({
+        where: { email: validatedData.email }
+      }),
+      'Unable to access database. Please ensure the database is initialized.'
+    )
 
     if (existingUser) {
       throw new ApiError(
@@ -25,20 +29,23 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const hashedPassword = await hashPassword(validatedData.password)
-    const user = await prisma.user.create({
-      data: {
-        email: validatedData.email,
-        password: hashedPassword,
-        name: validatedData.name,
-        role: 'USER'
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true
-      }
-    })
+    const user = await withDatabaseCheck(
+      () => prisma.user.create({
+        data: {
+          email: validatedData.email,
+          password: hashedPassword,
+          name: validatedData.name,
+          role: 'USER'
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true
+        }
+      }),
+      'Unable to create user. Please ensure the database is initialized.'
+    )
 
     // Generate token
     const userRole = user.role as UserRole

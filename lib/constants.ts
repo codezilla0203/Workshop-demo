@@ -28,5 +28,7 @@ export const ERROR_MESSAGES = {
   INTERNAL_ERROR: 'Internal server error',
   INVALID_INPUT: 'Invalid input',
   VALIDATION_ERROR: 'Validation failed',
+  DATABASE_NOT_INITIALIZED: 'Database not initialized. Please run: npx prisma db push',
+  DATABASE_ERROR: 'Database error occurred',
 } as const
 
