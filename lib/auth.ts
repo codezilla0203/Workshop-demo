@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import { prisma } from './prisma'
 import { env } from './env'
 import { APP_CONFIG } from './constants'
+import { AuthUser } from '@/types/user'
 
 export interface TokenPayload {
   userId: string
@@ -31,13 +32,23 @@ export function verifyToken(token: string): TokenPayload | null {
   }
 }
 
-export async function getUserFromToken(token: string) {
+export async function getUserFromToken(token: string): Promise<AuthUser | null> {
   const payload = verifyToken(token)
   if (!payload) return null
 
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: payload.userId },
     select: { id: true, email: true, name: true, role: true }
   })
+
+  if (!user) return null
+
+  // Cast role to UserRole type since Prisma returns string
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role as AuthUser['role']
+  }
 }
 
