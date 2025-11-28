@@ -38,16 +38,19 @@ A professional, production-ready full-stack web application demonstrating AI-aug
 npm install
 ```
 
-2. **Set up the database:**
+2. **Create a `.env` file** (required):
+```env
+DATABASE_URL="file:./prisma/dev.db"
+JWT_SECRET="development-secret-key-min-32-chars-required-for-local-dev-only"
+```
+
+3. **Set up the database:**
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
-3. **Create a `.env` file** (optional for development):
-```env
-JWT_SECRET=your-secret-key-minimum-32-characters-long
-```
+**Note**: For local SQLite development, use `prisma db push` (not `prisma migrate dev`). This syncs your schema directly without requiring migration files.
 
 **Note**: For production, `JWT_SECRET` must be at least 32 characters. The app will validate this on startup.
 

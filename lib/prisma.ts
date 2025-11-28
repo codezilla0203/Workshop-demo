@@ -10,8 +10,17 @@ import { PrismaClient } from '@prisma/client'
 
 // Support both DATABASE_URL and POSTGRES_URL (Vercel provides POSTGRES_URL)
 // Prisma expects DATABASE_URL, so we map POSTGRES_URL to DATABASE_URL if needed
+// IMPORTANT: Do NOT use PRISMA_DATABASE_URL unless you've configured Prisma Accelerate
 if (!process.env.DATABASE_URL && process.env.POSTGRES_URL) {
   process.env.DATABASE_URL = process.env.POSTGRES_URL
+}
+
+// Validate that we're not accidentally using Prisma Accelerate URL without proper setup
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('prisma://')) {
+  console.warn(
+    '⚠️  WARNING: DATABASE_URL starts with "prisma://" but Prisma Accelerate is not configured. ' +
+    'Use a standard PostgreSQL connection string (postgres://) or configure Prisma Accelerate.'
+  )
 }
 
 // Prevent multiple instances of Prisma Client in development
