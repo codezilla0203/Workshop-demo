@@ -4,6 +4,7 @@ import { verifyPassword, generateToken } from '@/lib/auth'
 import { loginSchema } from '@/lib/validation'
 import { successResponse, errorResponse, handleApiError, ApiError } from '@/lib/api-response'
 import { HTTP_STATUS, ERROR_MESSAGES, APP_CONFIG } from '@/lib/constants'
+import { UserRole } from '@/types/user'
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,10 +27,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate token
+    const userRole = user.role as UserRole
     const token = generateToken({
       userId: user.id,
       email: user.email,
-      role: user.role
+      role: userRole
     })
 
     const response = successResponse({
@@ -37,7 +39,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role
+        role: userRole
       },
       token
     })
