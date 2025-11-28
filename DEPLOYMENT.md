@@ -91,12 +91,15 @@ In `package.json`, the build script should be:
 ```json
 {
   "scripts": {
-    "build": "prisma generate && prisma migrate deploy && next build"
+    "build": "prisma generate --no-engine && prisma migrate deploy && next build"
   }
 }
 ```
 
-**Note**: The current build script already includes `prisma generate`, so migrations will run automatically.
+**Note**: 
+- `--no-engine` flag is recommended for production to reduce bundle size
+- The current build script already includes this optimization
+- Migrations will run automatically during build
 
 #### Step 5: Deploy
 
